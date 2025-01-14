@@ -1,4 +1,4 @@
-{ stdenv, python3Packages, fzf }:
+{ stdenv, python3Packages, fzf, lib }:
 
 stdenv.mkDerivation rec {
   pname = "fm";

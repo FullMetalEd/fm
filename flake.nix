@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    # Remove flake-utils/systems
   };
 
   outputs = { self, nixpkgs, flake-utils }:
@@ -14,8 +15,9 @@
       {
         packages = rec {
           fm = pkgs.callPackage ./default.nix {
+            inherit (pkgs) lib;
             python3Packages = pkgs.python3Packages;
-            fzf = pkgs.fzf; # Pass fzf to the derivation
+            fzf = pkgs.fzf;
           };
           default = fm;
         };
