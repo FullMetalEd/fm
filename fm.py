@@ -1,7 +1,7 @@
 import argparse
-import yaml
-from fm.run_command import run_script
-from fm.fzf_helper import fuzzy_find_command, handle_path
+import pyyaml
+from run_command import run_script
+from fzf_helper import fuzzy_find_command, handle_path
 import os
 
 def get_config_path():
