@@ -1,5 +1,5 @@
 import argparse
-import pyyaml
+import yaml
 from run_command import run_script
 from fzf_helper import fuzzy_find_command, handle_path
 import os
