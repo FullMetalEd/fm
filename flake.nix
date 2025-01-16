@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = inputs@{ self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -15,13 +15,12 @@
           fzf = pkgs.fzf;
           pyyaml = pkgs.python3Packages.pyyaml;
         };
-      in
-      {
-    devShells.x86_64-linux.default = pkgs.mkShell {
-      inputsFrom = [ build ];
-      buildInputs = with pkgs; [ python3 python3Packages.pyyaml fzf ];
-    };
+      in rec {
+        devShells.default = pkgs.mkShell {
+          buildInputs = [ pkgs.python3 pkgs.python3Packages.pyyaml pkgs.fzf fm-package];
+        };
 
-    packages.x86_64-linux.default = build; 
-  };
+        packages = fm-package; 
+      }
+    );
 }

@@ -7,8 +7,9 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [ fzf pyyaml ]; # Add fzf and pyyaml as build inputs
   installPhase = ''
     mkdir -p $out/bin $out/lib/fm
-    cp -r * $out/lib/fm
-    ln -s $out/lib/fm/__main__.py $out/bin/fm
+    cp -r ./* $out/lib/fm
+    #ln -s $out/lib/fm/fm.py $out/bin/fm
+    touch $out/bin/fm
     chmod +x $out/bin/fm
   '';
 
