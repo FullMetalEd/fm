@@ -1,0 +1,34 @@
+commands:
+  mkd:
+    script: "mkd.sh"  # Script paths are now relative to 'scripts/'
+    description: "Make a directory and 'CD' into it"
+    args:
+      - name: dirpath
+        help: "Path to the directory to create"
+
+  mkf:
+    script: "mkf.sh"
+    description: "Make a file and open it in your text editor, create the path if it doenst exist."
+    args:
+      - name: filepath
+        help: "Path to the file to create"
+
+  rm:
+    script: "rm.sh"
+    description: "Remove a file or directory"
+    args:
+      - name: path
+        help: "Path to remove"
+      - name: -r
+        action: "store_true"
+        help: "Recursive removal"
+      - name: -f
+        action: "store_true"
+        help: "Force removal"
+
+  ports:
+    script: "ports.sh"
+    description: "List open ports and their services"
+    special: true
+
+  # ... more commands as needed
