@@ -30,7 +30,8 @@ stdenv.mkDerivation rec {
     cat > $out/bin/fm-wrapper <<EOF
     #!${stdenv.shell}
     export FM_SCRIPTS_DIR=\$out/lib/fm/scripts
-    exec $out/lib/fm/__main__.py "\$@"
+    export FM_CONFIG_PATH="\$out/lib/fm/config.yml"
+    exec ${python3}/bin/python3 "/lib/fm/__main__.py" "\$@"
     EOF
     chmod +x $out/bin/fm-wrapper
 
