@@ -10,23 +10,18 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        fm-package = pkgs.callPackage ./default.nix { inherit (pkgs) lib; };
+        fm-package = pkgs.callPackage ./default.nix {
+          inherit (pkgs) lib;
+          fzf = pkgs.fzf;
+          pyyaml = pkgs.python3Packages.pyyaml;
+        };
       in
       {
-        packages = rec {
-          fm = fm-package;
-          default = fm;
-        };
+    devShells.x86_64-linux.default = pkgs.mkShell {
+      inputsFrom = [ build ];
+      buildInputs = with pkgs; [ python3 python3Packages.pyyaml fzf ];
+    };
 
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.python3
-            pkgs.python3Packages.pyyaml
-            pkgs.fzf
-            fm-package # Ensure fm is built and available in the develop environment
-          ];
-          packages = [ self.packages.${system}.fm ];
-        };
-      }
-    );
+    packages.x86_64-linux.default = build; 
+  };
 }
