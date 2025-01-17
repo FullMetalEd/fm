@@ -30,5 +30,13 @@ commands:
     script: "ports.sh"
     description: "List open ports and their services"
     special: true
+  
+  ls:
+    script: "./fm-scripts/list_files.sh"
+    decription: "List files in given directory."
+    args:
+      - name: path
+        description: "The path to the directory."
+        required: True
 
   # ... more commands as needed

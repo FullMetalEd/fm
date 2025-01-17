@@ -1,124 +1,83 @@
-import argparse
 import yaml
-from run_command import run_script
-from fzf_helper import fuzzy_find_command, handle_path
+import subprocess
+import argparse
 import os
 
-def get_config_path():
-    """Gets the path to the config.yml file."""
-    user_config_dir = os.path.expanduser("~/.config/fm")
-    user_config_path = os.path.join(user_config_dir, "config.yml")
+def load_config(config_file="config.yml"):
+    """Loads the configuration from the YAML file."""
+    with open(config_file, "r") as f:
+        return yaml.safe_load(f)
 
-    if os.path.exists(user_config_path):
-        return user_config_path
-    else:
-        # Use the environment variable if set, otherwise use default
-        default_config_path = os.environ.get("FM_CONFIG_PATH", "/lib/fm/config.yml")
-        return default_config_path
+def run_script(script_path, args):
+    """Runs the specified script with the given arguments."""
+    try:
+        # Construct the command with the script path and arguments
+        command = [script_path] + args
+        
+        # Run the command and capture output
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
 
-def get_scripts_dir():
-    """Gets the directory where scripts are stored."""
-    # Use the environment variable if set, otherwise use default
-    return os.environ.get("FM_SCRIPTS_DIR", "")
+        # Decode output (if needed)
+        if stdout:
+            print("Output:")
+            print(stdout.decode())
+        if stderr:
+            print("Error:")
+            print(stderr.decode())
+
+        return process.returncode  # Return the exit code of the script
+
+    except FileNotFoundError:
+        print(f"Error: Script not found at {script_path}")
+        return -1
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return -1
 
 def main():
-    config_path = get_config_path()
-    scripts_dir = get_scripts_dir()
+    """Parses command-line arguments and runs the appropriate script."""
+    config = load_config()
 
-    try:
-        with open(config_path, "r") as f:
-            config = yaml.safe_load(f)
-    except FileNotFoundError:
-        print(f"Error: Could not find config file at {config_path}")
-        exit(1)
-    except yaml.YAMLError as e:
-        print(f"Error parsing config file: {e}")
-        exit(1)
+    parser = argparse.ArgumentParser(description="Run scripts defined in config.yml.")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    parser = argparse.ArgumentParser(
-        prog="fm", description="FullMetal Function Manager (fm)"
-    )
-    parser.add_argument(
-        "-v", "--version", action="version", version="%(prog)s 0.1.0"
-    )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
-
-    for command_name, command_config in config["commands"].items():
-        command_parser = subparsers.add_parser(
-            command_name,
-            help=command_config.get("description", ""),
-            add_help=False,
-        )
-
-        command_parser.add_argument(
-            "-h",
-            "--help",
-            action="help",
-            default=argparse.SUPPRESS,
-            help="Show this help message and exit.",
-        )
-
-        if "args" in command_config:
-            for arg in command_config["args"]:
-                arg_name = arg["name"]
-                kwargs = {k: v for k, v in arg.items() if k != "name"}
-                command_parser.add_argument(arg_name, **kwargs)
-
-        command_parser.set_defaults(
-            func=run_script,
-            script_path=os.path.join(scripts_dir, command_config["script"]),
-            command_name=command_name,
-        )
-
-    first_args, remaining_args = parser.parse_known_args()
-
-    if first_args.command:
-        if first_args.command in config["commands"]:
-            command_config = config["commands"][first_args.command]
-            command_parser = subparsers.choices[first_args.command]
-            args = command_parser.parse_args(remaining_args)
-            args.command = first_args.command
-            args.script_path = os.path.join(scripts_dir, command_config["script"])
-            args.func = run_script
-
-            if command_config.get("special", False):
-                args.func(args)
-            else:
-                if not any(
-                    arg
-                    for arg in vars(args)
-                    if arg
-                    not in ["func", "script_path", "command_name", "command", "help"]
-                ):
-                    command_parser.print_help()
-                else:
-                    args.func(args)
-        else:
-            print(f"Unknown command: {first_args.command}")
-            selected_command = fuzzy_find_command(
-                list(config["commands"].keys()), first_args.command
+    # Create sub-parsers for each script
+    for script_name, script_data in config["scripts"].items():
+        script_parser = subparsers.add_parser(script_name, help=script_data["description"])
+        for arg in script_data.get("args", []):
+            script_parser.add_argument(
+                f"--{arg['name']}",
+                help=arg["description"],
+                required=arg["required"]
             )
-            if selected_command:
-                print(f"Did you mean '{selected_command}'?")
-            else:
-                print("No similar commands found.")
-    else:
-        selected_command = fuzzy_find_command(list(config["commands"].keys()))
-        if selected_command:
-            command_config = config["commands"][selected_command]
-            if command_config.get("special", False):
-                args = argparse.Namespace(
-                    command=selected_command,
-                    script_path=os.path.join(scripts_dir, command_config["script"]),
-                    func=run_script,
-                )
-                args.func(args)
-            else:
-                command_parser = subparsers.choices[selected_command]
-                command_parser.print_help()
+
+    args = parser.parse_args()
+
+    if args.command:
+        script_data = config["scripts"][args.command]
+        script_path = script_data["path"]
+        
+        # Make sure the script exists
+        if not os.path.exists(script_path):
+            print(f"Error: Script not found at {script_path}")
+            return
+
+        # Gather arguments for the script
+        script_args = []
+        for arg_data in script_data.get("args", []):
+            arg_value = getattr(args, arg_data["name"])
+            if arg_value is not None:
+                script_args.append(str(arg_value))
+
+        # Run the script
+        exit_code = run_script(script_path, script_args)
+        if exit_code == 0:
+          print(f"Script {script_name} executed successfully.")
         else:
-            parser.print_help()
+          print(f"Script {script_name} failed with exit code {exit_code}.")
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()

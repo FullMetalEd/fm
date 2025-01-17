@@ -1,5 +1,5 @@
 {
-  description = "fm - A CLI tool for ...";
+  description = "Fullmetal Function Manager";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -42,18 +42,18 @@
 
             # Create directories
             mkdir -p $out/bin/fm
-            mkdir -p $out/lib/fm
-            mkdir -p $out/bin/fm/scripts
+            #mkdir -p $out/lib/fm
+            mkdir -p $out/bin/fm/fm-scripts
 
             # Copy files
             cp fm.py $out/bin/fm/
-            cp fzf_helper.py $out/bin/fm/
-            cp run_command.py $out/bin/fm/
-            cp -r scripts/* $out/bin/fm/scripts/
+            #cp fzf_helper.py $out/bin/fm/
+            #cp run_command.py $out/bin/fm/
+            cp -r fm-scripts/* $out/bin/fm/fm-scripts/
             cp config.yml $out/bin/fm/
 
             # Patch shebangs in the scripts directory
-            patchShebangs $out/bin/fm/scripts/*
+            patchShebangs $out/bin/fm/fm-scripts/*
 
             # Create the wrapper
             makeWrapper ${pythonEnv}/bin/python3 $out/bin/fm/fm \
