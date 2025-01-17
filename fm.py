@@ -55,7 +55,7 @@ def main():
     args = parser.parse_args()
 
     if args.command:
-        script_data = config["scripts"][args.command]
+        script_data = config["script"][args.command]
         script_path = script_data["path"]
         
         # Make sure the script exists
