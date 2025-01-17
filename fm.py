@@ -43,7 +43,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Create sub-parsers for each script
-    for script_name, script_data in config["scripts"].items():
+    for script_name, script_data in config["script"].items():
         script_parser = subparsers.add_parser(script_name, help=script_data["description"])
         for arg in script_data.get("args", []):
             script_parser.add_argument(
