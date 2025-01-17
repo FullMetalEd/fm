@@ -13,13 +13,13 @@ def get_config_path():
         return user_config_path
     else:
         # Use the environment variable if set, otherwise use default
-        default_config_path = os.environ.get("FM_CONFIG_PATH", "/etc/fm.yml")
+        default_config_path = os.environ.get("FM_CONFIG_PATH", "/lib/fm/config.yml")
         return default_config_path
 
 def get_scripts_dir():
     """Gets the directory where scripts are stored."""
     # Use the environment variable if set, otherwise use default
-    return os.environ.get("FM_SCRIPTS_DIR", "/usr/lib/fm/scripts")
+    return os.environ.get("FM_SCRIPTS_DIR", "")
 
 def main():
     config_path = get_config_path()
